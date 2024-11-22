@@ -5,7 +5,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useNavigation } from '@react-navigation/native';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc, doc, setDoc } from 'firebase/firestore';
-import { Audio } from 'expo-av';
+
 
 
 const Ambulance = () => {
@@ -15,29 +15,13 @@ const Ambulance = () => {
   const [location, setLocation] = useState(null);
   const [showArrivalButton, setShowArrivalButton] = useState(false);
   const pulseAnim = new Animated.Value(1);
-  const [sound, setSound] = useState(null);
 
   useEffect(() => {
     startPulseAnimation();
     handleCountdown();
     getLocation();
     saveEmergencyData();
-    playSound();
-
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
-
-  const playSound = async () => {
-    const { sound } = await Audio.Sound.createAsync(
-      require('./sound/alert.mp3') // Replace with the path to your audio file
-    );
-    setSound(sound);
-    await sound.playAsync();
-  };
+  }, []);
 
   // Add this function to save emergency data
   const saveEmergencyData = async () => {
