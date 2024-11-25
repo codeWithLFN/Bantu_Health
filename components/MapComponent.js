@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
     View,
     StyleSheet,
-    Dimensions,
     Text,
+    FlatList,
+    TouchableOpacity,
+    Alert,
     ActivityIndicator,
     TouchableOpacity,
     Linking,
