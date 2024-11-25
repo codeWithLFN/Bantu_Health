@@ -156,11 +156,35 @@ const MapComponent = ({ onLocationSelect }) => {
         getUserLocation();
     }, []);
 
+    const renderFacilityCard = ({ item }) => (
+        <TouchableOpacity 
+            style={styles.card}
+            onPress={() => onLocationSelect && onLocationSelect(item)}
+        >
+            <View style={styles.cardHeader}>
+                <MaterialIcons 
+                    name={item.type === 'hospital' ? 'local-hospital' : 'medical-services'} 
+                    size={24} 
+                    color={item.type === 'hospital' ? '#FF4444' : '#4444FF'} 
+                />
+                <Text style={styles.facilityName}>{item.name}</Text>
+            </View>
+            <Text style={styles.facilityAddress}>{item.address}</Text>
+            <TouchableOpacity
+                style={styles.directionButton}
+                onPress={() => openInGoogleMaps(item)}
+            >
+                <MaterialIcons name="directions" size={20} color="#FFFFFF" />
+                <Text style={styles.directionButtonText}>Get Directions</Text>
+            </TouchableOpacity>
+        </TouchableOpacity>
+    );
+
     return (
         <SafeAreaView style={styles.safeContainer}>
             <View style={styles.container}>
                 <View style={styles.headerContainer}>
-                    <Text style={styles.headerText}>Find Medical Facilities</Text>
+                    <Text style={styles.headerText}>Medical Facilities</Text>
                     <Text style={styles.subHeaderText}>Hospitals & Clinics Near You</Text>
                 </View>
                 {loading ? (
@@ -169,43 +193,13 @@ const MapComponent = ({ onLocationSelect }) => {
                         <Text style={styles.loadingText}>Finding nearby medical facilities...</Text>
                     </View>
                 ) : (
-                    <MapView
-                        provider={PROVIDER_GOOGLE}
-                        style={styles.map}
-                        initialRegion={userLocation ? {
-                            latitude: userLocation.latitude,
-                            longitude: userLocation.longitude,
-                            latitudeDelta: 0.0922,
-                            longitudeDelta: 0.0421,
-                        } : initialRegion}
-                        showsUserLocation
-                        showsMyLocationButton
-                    >
-                        {medicalFacilities.map((facility) => (
-                            <Marker
-                                key={facility.id}
-                                coordinate={{
-                                    latitude: facility.latitude,
-                                    longitude: facility.longitude,
-                                }}
-                                pinColor={facility.type === 'hospital' ? '#FF4444' : '#4444FF'}
-                            >
-                                <Callout onPress={() => onLocationSelect && onLocationSelect(facility)}>
-                                    <View style={styles.calloutContainer}>
-                                        <Text style={styles.calloutTitle}>{facility.name}</Text>
-                                        <Text style={styles.calloutAddress}>{facility.address}</Text>
-                                        <TouchableOpacity
-                                            style={styles.directionButton}
-                                            onPress={() => openInGoogleMaps(facility)}
-                                        >
-                                            <MaterialIcons name="directions" size={20} color="#FFFFFF" />
-                                            <Text style={styles.directionButtonText}>Get Directions</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </Callout>
-                            </Marker>
-                        ))}
-                    </MapView>
+                    <FlatList
+                        data={medicalFacilities}
+                        renderItem={renderFacilityCard}
+                        keyExtractor={item => item.id}
+                        contentContainerStyle={styles.listContainer}
+                        showsVerticalScrollIndicator={false}
+                    />
                 )}
                 {errorMsg && (
                     <View style={styles.errorContainer}>
@@ -225,13 +219,11 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     headerContainer: {
         backgroundColor: '#007BFF',
         padding: 15,
         alignItems: 'center',
-        elevation: 4,
     },
     headerText: {
         color: '#FFFFFF',
@@ -244,9 +236,50 @@ const styles = StyleSheet.create({
         marginTop: 5,
         opacity: 0.9,
     },
-    map: {
-        width: Dimensions.get('window').width,
-        height: '100%',
+    listContainer: {
+        padding: 16,
+    },
+    card: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    facilityName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginLeft: 8,
+        flex: 1,
+    },
+    facilityAddress: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 12,
+    },
+    directionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#007BFF',
+        padding: 12,
+        borderRadius: 8,
+        justifyContent: 'center',
+    },
+    directionButtonText: {
+        color: '#FFFFFF',
+        marginLeft: 8,
+        fontWeight: '600',
+        fontSize: 16,
     },
     loadingContainer: {
         flex: 1,
@@ -257,34 +290,6 @@ const styles = StyleSheet.create({
         marginTop: 10,
         fontSize: 16,
         color: '#666',
-    },
-    calloutContainer: {
-        padding: 10,
-        minWidth: 200,
-    },
-    calloutTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 5,
-    },
-    calloutAddress: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 8,
-    },
-    directionButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#007BFF',
-        padding: 8,
-        borderRadius: 5,
-        justifyContent: 'center',
-    },
-    directionButtonText: {
-        color: '#FFFFFF',
-        marginLeft: 5,
-        fontWeight: '500',
     },
     errorContainer: {
         position: 'absolute',
