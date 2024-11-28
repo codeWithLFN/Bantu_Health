@@ -19,13 +19,56 @@ import { MaterialIcons } from '@expo/vector-icons';
 const GOOGLE_API_KEY = 'AIzaSyAsc-PWMl_MI5iSNk9Jt61afWlZLFQ5Dmo'; // Replace with your Google API key
 
 const REGIONS = [
+    //Eastern Cape
+    { latitude: -33.9258, longitude: 25.5676 }, // Port Elizabeth
+    { latitude: -33.9189, longitude: 18.4232 }, // East London
+    { latitude: -33.9249, longitude: 25.5701 }, // Uitenhage
+    { latitude: -33.9249, longitude: 25.5701 }, // Queenstown
+    { latitude: -33.9249, longitude: 25.5701 }, // Mthatha
+    //Free State
+    { latitude: -29.1244, longitude: 26.2041 }, // Bloemfontein
+    { latitude: -29.1244, longitude: 26.2041 }, // Welkom
+    { latitude: -29.1244, longitude: 26.2041 }, // Virginia
+    { latitude: -29.1244, longitude: 26.2041 }, // Kroonstad
+    //Gauteng
     { latitude: -26.2041, longitude: 28.0473 }, // Johannesburg
-    { latitude: -33.9249, longitude: 18.4241 }, // Cape Town
-    { latitude: -25.7479, longitude: 28.2293 }, // Pretoria
-    { latitude: -29.8587, longitude: 31.0218 }, // Durban
+    { latitude: -26.2041, longitude: 28.0473 }, // Pretoria
+    { latitude: -26.2041, longitude: 28.0473 }, // Midrand
+    { latitude: -26.2041, longitude: 28.0473 }, // Centurion
     { latitude: -26.1952, longitude: 28.0340 }, // Tshwane
-    // Add more regions as needed
+
+    //KwaZulu-Natal
+    { latitude: -29.8587, longitude: 31.0218 }, // Durban
+    { latitude: -29.8587, longitude: 31.0218 }, // Pietermaritzburg
+    { latitude: -29.8587, longitude: 31.0218 }, // Newcastle
+    { latitude: -29.8587, longitude: 31.0218 }, // Ladysmith
+    //Limpopo
+    { latitude: -23.9022, longitude: 29.4658 }, // Polokwane
+    { latitude: -23.9022, longitude: 29.4658 }, // Thohoyandou
+    { latitude: -23.9022, longitude: 29.4658 }, // Musina
+    { latitude: -23.9022, longitude: 29.4658 }, // Mokopane
+    //Mpumalanga
+    { latitude: -25.4650, longitude: 29.1244 }, // Nelspruit
+    { latitude: -25.4650, longitude: 29.1244 }, // White River
+    { latitude: -25.4650, longitude: 29.1244 }, // Hazyview
+    { latitude: -25.4650, longitude: 29.1244 }, // Sabie
+    //North West
+    { latitude: -25.7479, longitude: 28.2293 }, // Rustenburg
+    { latitude: -25.7479, longitude: 28.2293 }, // Brits
+    { latitude: -25.7479, longitude: 28.2293 }, // Potchefstroom
+    { latitude: -25.7479, longitude: 28.2293 }, // Klerksdorp
+    //Northern Cape
+    { latitude: -28.8016, longitude: 24.5844 }, // Kimberley
+    { latitude: -28.8016, longitude: 24.5844 }, // Upington
+    { latitude: -28.8016, longitude: 24.5844 }, // Springbok
+    { latitude: -28.8016, longitude: 24.5844 }, // Kimberley
+    //Western Cape
+    { latitude: -33.9249, longitude: 18.4241 }, // Cape Town
+    { latitude: -33.9249, longitude: 18.4241 }, // Stellenbosch
+    { latitude: -33.9249, longitude: 18.4241 }, // Paarl
+    { latitude: -33.9249, longitude: 18.4241 }, // Mossel Bay
 ];
+    
 
 const MapComponent = () => {
     const [medicalFacilities, setMedicalFacilities] = useState([]);
