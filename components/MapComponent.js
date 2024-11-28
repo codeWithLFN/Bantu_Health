@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
     View,
     StyleSheet,
+    Dimensions,
     Text,
     FlatList,
-    TouchableOpacity,
-    Alert,
     ActivityIndicator,
     TouchableOpacity,
     Linking,
@@ -13,34 +12,28 @@ import {
     Alert,
     SafeAreaView
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE, Callout } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const GOOGLE_API_KEY = 'AIzaSyAsc-PWMl_MI5iSNk9Jt61afWlZLFQ5Dmo';
+const GOOGLE_API_KEY = 'AIzaSyAsc-PWMl_MI5iSNk9Jt61afWlZLFQ5Dmo'; // Replace with your Google API key
 
 const REGIONS = [
-    { latitude: -26.2041, longitude: 28.0473 },
-    { latitude: -33.9249, longitude: 18.4241 },
-    { latitude: -25.7479, longitude: 28.2293 },
-    { latitude: -29.8587, longitude: 31.0218 },
-    { latitude: -25.6107, longitude: 27.7895 },
-    { latitude: -31.6326, longitude: 28.5306 },
-    { latitude: -30.675, longitude: 23.0418 },
-    { latitude: -26.874, longitude: 29.2494 },
-    { latitude: -24.1944, longitude: 29.0097 },
-    { latitude: -29.6663, longitude: 27.2317 },
-    { latitude: -30.874, longitude: 27.4708 },
-    { latitude: -32.9468, longitude: 27.7013 },
-    { latitude: -30.0097, longitude: 29.0097 },
-    { latitude: -29.8587, longitude: 31.0218 },
+    { latitude: -26.2041, longitude: 28.0473 }, // Johannesburg
+    { latitude: -33.9249, longitude: 18.4241 }, // Cape Town
+    { latitude: -25.7479, longitude: 28.2293 }, // Pretoria
+    { latitude: -29.8587, longitude: 31.0218 }, // Durban
+    { latitude: -26.1952, longitude: 28.0340 }, // Tshwane
+    // Add more regions as needed
 ];
 
-const MapComponent = ({ onLocationSelect }) => {
+const MapComponent = () => {
     const [medicalFacilities, setMedicalFacilities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
+    const [selectedFacility, setSelectedFacility] = useState(null);
+    const [showList, setShowList] = useState(false);
 
     const initialRegion = {
         latitude: -30.5595,
@@ -161,7 +154,10 @@ const MapComponent = ({ onLocationSelect }) => {
     const renderFacilityCard = ({ item }) => (
         <TouchableOpacity 
             style={styles.card}
-            onPress={() => onLocationSelect && onLocationSelect(item)}
+            onPress={() => {
+                setSelectedFacility(item);
+                setShowList(false);
+            }}
         >
             <View style={styles.cardHeader}>
                 <MaterialIcons 
@@ -189,20 +185,52 @@ const MapComponent = ({ onLocationSelect }) => {
                     <Text style={styles.headerText}>Medical Facilities</Text>
                     <Text style={styles.subHeaderText}>Hospitals & Clinics Near You</Text>
                 </View>
-                {loading ? (
+                <MapView
+                    style={styles.map}
+                    provider={PROVIDER_GOOGLE}
+                    initialRegion={initialRegion}
+                    showsUserLocation={true}
+                >
+                    {medicalFacilities.map((facility) => (
+                        <Marker
+                            key={facility.id}
+                            coordinate={{
+                                latitude: facility.latitude,
+                                longitude: facility.longitude
+                            }}
+                            onPress={() => {
+                                setSelectedFacility(facility);
+                                setShowList(true);
+                            }}
+                        >
+                            <MaterialIcons 
+                                name={facility.type === 'hospital' ? 'local-hospital' : 'medical-services'} 
+                                size={24} 
+                                color={facility.type === 'hospital' ? '#FF4444' : '#4444FF'} 
+                            />
+                        </Marker>
+                    ))}
+                </MapView>
+
+                {showList && selectedFacility && (
+                    <View style={styles.facilityInfoContainer}>
+                        <TouchableOpacity 
+                            style={styles.closeButton}
+                            onPress={() => setShowList(false)}
+                        >
+                            <MaterialIcons name="close" size={24} color="#333" />
+                        </TouchableOpacity>
+                        {renderFacilityCard({ item: selectedFacility })}
+                    </View>
+                )}
+
+                {loading && (
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator size="large" color="#007BFF" />
                         <Text style={styles.loadingText}>Finding nearby medical facilities...</Text>
                     </View>
-                ) : (
-                    <FlatList
-                        data={medicalFacilities}
-                        renderItem={renderFacilityCard}
-                        keyExtractor={item => item.id}
-                        contentContainerStyle={styles.listContainer}
-                        showsVerticalScrollIndicator={false}
-                    />
                 )}
+
                 {errorMsg && (
                     <View style={styles.errorContainer}>
                         <MaterialIcons name="error" size={24} color="#FF4444" />
@@ -218,14 +246,21 @@ const styles = StyleSheet.create({
     safeContainer: {
         flex: 1,
         backgroundColor: '#F3F4F6',
+        
     },
     container: {
         flex: 1,
+    },
+    map: {
+        width: Dimensions.get('window').width,
+        height: Dimensions.get('window').height,
     },
     headerContainer: {
         backgroundColor: '#007BFF',
         padding: 15,
         alignItems: 'center',
+        zIndex: 1,
+        elevation: 3,
     },
     headerText: {
         color: '#FFFFFF',
@@ -284,9 +319,14 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     loadingContainer: {
-        flex: 1,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
     },
     loadingText: {
         marginTop: 10,
@@ -309,6 +349,32 @@ const styles = StyleSheet.create({
         color: '#FF4444',
         fontSize: 14,
         flex: 1,
+    },
+    facilityInfoContainer: {
+        position: 'absolute',
+        bottom: 80,
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 16,
+        maxHeight: '40%',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: -3,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    closeButton: {
+        position: 'absolute',
+        right: 16,
+        top: 16,
+        zIndex: 1,
+        padding: 8,
     },
 });
 
