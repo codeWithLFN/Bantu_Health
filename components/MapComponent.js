@@ -19,54 +19,70 @@ import { MaterialIcons } from '@expo/vector-icons';
 const GOOGLE_API_KEY = 'AIzaSyAsc-PWMl_MI5iSNk9Jt61afWlZLFQ5Dmo'; // Replace with your Google API key
 
 const REGIONS = [
-    //Eastern Cape
-    { latitude: -33.9258, longitude: 25.5676 }, // Port Elizabeth
-    { latitude: -33.9189, longitude: 18.4232 }, // East London
-    { latitude: -33.9249, longitude: 25.5701 }, // Uitenhage
-    { latitude: -33.9249, longitude: 25.5701 }, // Queenstown
-    { latitude: -33.9249, longitude: 25.5701 }, // Mthatha
-    //Free State
-    { latitude: -29.1244, longitude: 26.2041 }, // Bloemfontein
-    { latitude: -29.1244, longitude: 26.2041 }, // Welkom
-    { latitude: -29.1244, longitude: 26.2041 }, // Virginia
-    { latitude: -29.1244, longitude: 26.2041 }, // Kroonstad
-    //Gauteng
-    { latitude: -26.2041, longitude: 28.0473 }, // Johannesburg
-    { latitude: -26.2041, longitude: 28.0473 }, // Pretoria
-    { latitude: -26.2041, longitude: 28.0473 }, // Midrand
-    { latitude: -26.2041, longitude: 28.0473 }, // Centurion
-    { latitude: -26.1952, longitude: 28.0340 }, // Tshwane
+    // Eastern Cape
+    { latitude: -33.9258, longitude: 25.5676, name: "Port Elizabeth" },
+    { latitude: -32.9699, longitude: 27.8618, name: "East London" },
+    { latitude: -33.7404, longitude: 25.4124, name: "Uitenhage" },
+    { latitude: -31.5595, longitude: 27.8251, name: "Queenstown" },
+    { latitude: -31.5904, longitude: 29.2875, name: "Mthatha" },
+    { latitude: -33.2278, longitude: 27.9167, name: "Grahamstown" },
 
-    //KwaZulu-Natal
-    { latitude: -29.8587, longitude: 31.0218 }, // Durban
-    { latitude: -29.8587, longitude: 31.0218 }, // Pietermaritzburg
-    { latitude: -29.8587, longitude: 31.0218 }, // Newcastle
-    { latitude: -29.8587, longitude: 31.0218 }, // Ladysmith
-    //Limpopo
-    { latitude: -23.9022, longitude: 29.4658 }, // Polokwane
-    { latitude: -23.9022, longitude: 29.4658 }, // Thohoyandou
-    { latitude: -23.9022, longitude: 29.4658 }, // Musina
-    { latitude: -23.9022, longitude: 29.4658 }, // Mokopane
-    //Mpumalanga
-    { latitude: -25.4650, longitude: 29.1244 }, // Nelspruit
-    { latitude: -25.4650, longitude: 29.1244 }, // White River
-    { latitude: -25.4650, longitude: 29.1244 }, // Hazyview
-    { latitude: -25.4650, longitude: 29.1244 }, // Sabie
-    //North West
-    { latitude: -25.7479, longitude: 28.2293 }, // Rustenburg
-    { latitude: -25.7479, longitude: 28.2293 }, // Brits
-    { latitude: -25.7479, longitude: 28.2293 }, // Potchefstroom
-    { latitude: -25.7479, longitude: 28.2293 }, // Klerksdorp
-    //Northern Cape
-    { latitude: -28.8016, longitude: 24.5844 }, // Kimberley
-    { latitude: -28.8016, longitude: 24.5844 }, // Upington
-    { latitude: -28.8016, longitude: 24.5844 }, // Springbok
-    { latitude: -28.8016, longitude: 24.5844 }, // Kimberley
-    //Western Cape
-    { latitude: -33.9249, longitude: 18.4241 }, // Cape Town
-    { latitude: -33.9249, longitude: 18.4241 }, // Stellenbosch
-    { latitude: -33.9249, longitude: 18.4241 }, // Paarl
-    { latitude: -33.9249, longitude: 18.4241 }, // Mossel Bay
+    // Free State
+    { latitude: -29.0852, longitude: 26.1596, name: "Bloemfontein" },
+    { latitude: -28.3089, longitude: 27.8732, name: "Welkom" },
+    { latitude: -28.5569, longitude: 25.9233, name: "Virginia" },
+    { latitude: -27.6990, longitude: 27.2293, name: "Kroonstad" },
+    { latitude: -28.5500, longitude: 25.9500, name: "Bethlehem" },
+
+    // Gauteng
+    { latitude: -26.2023, longitude: 28.0477, name: "Johannesburg" },
+    { latitude: -25.7069, longitude: 28.2294, name: "Pretoria" },
+    { latitude: -26.0667, longitude: 28.1217, name: "Midrand" },
+    { latitude: -25.8546, longitude: 28.1878, name: "Centurion" },
+    { latitude: -26.1952, longitude: 28.0340, name: "Tshwane" },
+    { latitude: -26.3004, longitude: 27.9700, name: "Soweto" },
+
+    // KwaZulu-Natal
+    { latitude: -29.8587, longitude: 31.0218, name: "Durban" },
+    { latitude: -29.6228, longitude: 30.3949, name: "Pietermaritzburg" },
+    { latitude: -27.7518, longitude: 29.9300, name: "Newcastle" },
+    { latitude: -28.5500, longitude: 29.7800, name: "Ladysmith" },
+    { latitude: -30.2909, longitude: 30.8814, name: "Richards Bay" },
+
+    // Limpopo
+    { latitude: -23.9011, longitude: 29.4608, name: "Polokwane" },
+    { latitude: -22.9736, longitude: 30.4988, name: "Thohoyandou" },
+    { latitude: -22.3214, longitude: 30.4698, name: "Musina" },
+    { latitude: -24.1833, longitude: 29.0167, name: "Mokopane" },
+    { latitude: -23.0400, longitude: 30.2300, name: "Tzaneen" },
+
+    // Mpumalanga
+    { latitude: -25.4657, longitude: 30.9298, name: "Nelspruit" },
+    { latitude: -25.3467, longitude: 30.8570, name: "White River" },
+    { latitude: -25.0947, longitude: 30.8570, name: "Hazyview" },
+    { latitude: -25.1196, longitude: 30.1420, name: "Sabie" },
+    { latitude: -25.6282, longitude: 30.4541, name: "Barberton" },
+
+    // North West
+    { latitude: -25.6630, longitude: 25.5170, name: "Rustenburg" },
+    { latitude: -25.6300, longitude: 27.7800, name: "Brits" },
+    { latitude: -26.7152, longitude: 27.0916, name: "Potchefstroom" },
+    { latitude: -26.8667, longitude: 26.6667, name: "Klerksdorp" },
+    { latitude: -25.9300, longitude: 25.6500, name: "Mahikeng" },
+
+    // Northern Cape
+    { latitude: -28.7282, longitude: 24.7499, name: "Kimberley" },
+    { latitude: -28.4478, longitude: 21.2594, name: "Upington" },
+    { latitude: -29.6667, longitude: 17.8833, name: "Springbok" },
+    { latitude: -28.7500, longitude: 24.7700, name: "Northern Cape" },
+    { latitude: -30.7500, longitude: 22.0500, name: "Calvinia" },
+
+    // Western Cape
+    { latitude: -33.9249, longitude: 18.4241, name: "Cape Town" },
+    { latitude: -33.9336, longitude: 18.8653, name: "Stellenbosch" },
+    { latitude: -33.7341, longitude: 18.9700, name: "Paarl" },
+    { latitude: -34.0817, longitude: 22.1409, name: "Mossel Bay" },
+    { latitude: -33.6112, longitude: 19.4572, name: "Worcester" }
 ];
     
 
