@@ -1,9 +1,21 @@
 import React, { useState } from 'react';
-import { StatusBar, TextInput, View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { 
+  StatusBar, 
+  TextInput, 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  Dimensions, 
+  SafeAreaView 
+} from 'react-native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import Navbar from '../components/Navbar/Navbar.js';
 import { Platform } from 'react-native';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebaseConfig'; // Adjust the path as needed
 
 const { width } = Dimensions.get('window');
 
@@ -13,7 +25,12 @@ const Settings = () => {
 
   // Options available in Settings
   const options = [
-    { icon: "user-cog", title: "Accounts Center", description: "Manage password, security, personal details", route: "AccountCenter" },
+    { 
+      icon: "user-cog", 
+      title: "Accounts Center", 
+      description: "Manage password, security, personal details", 
+      route: "AccountCenter" 
+    },
     { icon: "info-circle", title: "About", route: "About" },
     { icon: "file-alt", title: "Privacy Policy", route: "PrivacyPolicy" },
     { icon: "file-contract", title: "Terms of Use", route: "TermsOfUse" },
@@ -39,10 +56,29 @@ const Settings = () => {
     </TouchableOpacity>
   );
 
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      // Sign out from Firebase
+      await signOut(auth);
+
+      // Reset navigation stack and navigate to Login
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        })
+      );
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Optionally show an error toast
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeContainer}>
-      <StatusBar 
-        barStyle="dark-content" 
+      <StatusBar
+        barStyle="dark-content"
         backgroundColor="#FFFFFF"
         translucent={Platform.OS === 'android'}
       />
@@ -73,7 +109,7 @@ const Settings = () => {
           {/* Logout Button */}
           <TouchableOpacity
             style={styles.logoutButton}
-            onPress={() => navigation.navigate('Login')}>
+            onPress={handleLogout}>
             <Icon name="sign-out-alt" size={20} color="#FF6B6B" style={styles.logoutIcon} />
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>

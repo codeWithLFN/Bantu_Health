@@ -22,99 +22,36 @@ import { StatusBar } from 'react-native';
 
 const Stack = createStackNavigator();
 
-const App = () => {
+function App() {
   return (
     <NavigationContainer>
       <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={true} />
-      {/* SplashScreen as the initial route */}
-      <Stack.Navigator initialRouteName="SplashScreen">
-        <Stack.Screen
-          name="SplashScreen"
-          component={SplashScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={Login}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Register"
-          component={Register}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Dashboard"
-          component={Dashboard}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="VideoConsultationScreen"
-          component={VideoConsultationScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="SymptomsAnalysis"
-          component={SymptomsAnalysis}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ClinicFinder"
-          component={ClinicFinder}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Settings"
-          component={Settings}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="AccountCenter"
-          component={AccountCenter}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="About"
-          component={About}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="PrivacyPolicy"
-          component={PrivacyPolicy}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="TermsOfUse"
-          component={TermsOfUse}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="MapComponent"
-          component={MapComponent}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Ambulance"
-          component={Ambulance}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ForgotPassword"
-          component={ForgotPassword}
-          options={{ headerShown: false }}
-        />
-      
-        <Stack.Screen
-          name="Health"
-          component={Health}
-          options={{ headerShown: false }}
-        />
+      <Stack.Navigator 
+        screenOptions={{ 
+          headerShown: false 
+        }}
+        initialRouteName="Login"
+      >
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Dashboard" component={Dashboard} />
+        <Stack.Screen name="VideoConsultationScreen" component={VideoConsultationScreen} />
+        <Stack.Screen name="SymptomsAnalysis" component={SymptomsAnalysis} />
+        <Stack.Screen name="ClinicFinder" component={ClinicFinder} />
+        <Stack.Screen name="Settings" component={Settings} />
+        <Stack.Screen name="AccountCenter" component={AccountCenter} />
+        <Stack.Screen name="About" component={About} />
+        <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+        <Stack.Screen name="TermsOfUse" component={TermsOfUse} />
+        <Stack.Screen name="MapComponent" component={MapComponent} />
+        <Stack.Screen name="Ambulance" component={Ambulance} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+        <Stack.Screen name="Health" component={Health} />
       </Stack.Navigator>
 
-      {/* Toast should be placed here */}
       <Toast />
     </NavigationContainer>
   );
-};
+}
 
 export default App;
