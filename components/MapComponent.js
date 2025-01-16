@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     View,
     StyleSheet,
     Dimensions,
     Text,
-    FlatList,
     ActivityIndicator,
     TouchableOpacity,
     Linking,
@@ -16,75 +15,8 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const GOOGLE_API_KEY = 'AIzaSyAsc-PWMl_MI5iSNk9Jt61afWlZLFQ5Dmo'; // Replace with your Google API key
-
-const REGIONS = [
-    // Eastern Cape
-    { latitude: -33.9258, longitude: 25.5676, name: "Port Elizabeth" },
-    { latitude: -32.9699, longitude: 27.8618, name: "East London" },
-    { latitude: -33.7404, longitude: 25.4124, name: "Uitenhage" },
-    { latitude: -31.5595, longitude: 27.8251, name: "Queenstown" },
-    { latitude: -31.5904, longitude: 29.2875, name: "Mthatha" },
-    { latitude: -33.2278, longitude: 27.9167, name: "Grahamstown" },
-
-    // Free State
-    { latitude: -29.0852, longitude: 26.1596, name: "Bloemfontein" },
-    { latitude: -28.3089, longitude: 27.8732, name: "Welkom" },
-    { latitude: -28.5569, longitude: 25.9233, name: "Virginia" },
-    { latitude: -27.6990, longitude: 27.2293, name: "Kroonstad" },
-    { latitude: -28.5500, longitude: 25.9500, name: "Bethlehem" },
-
-    // Gauteng
-    { latitude: -26.2023, longitude: 28.0477, name: "Johannesburg" },
-    { latitude: -25.7069, longitude: 28.2294, name: "Pretoria" },
-    { latitude: -26.0667, longitude: 28.1217, name: "Midrand" },
-    { latitude: -25.8546, longitude: 28.1878, name: "Centurion" },
-    { latitude: -26.1952, longitude: 28.0340, name: "Tshwane" },
-    { latitude: -26.3004, longitude: 27.9700, name: "Soweto" },
-
-    // KwaZulu-Natal
-    { latitude: -29.8587, longitude: 31.0218, name: "Durban" },
-    { latitude: -29.6228, longitude: 30.3949, name: "Pietermaritzburg" },
-    { latitude: -27.7518, longitude: 29.9300, name: "Newcastle" },
-    { latitude: -28.5500, longitude: 29.7800, name: "Ladysmith" },
-    { latitude: -30.2909, longitude: 30.8814, name: "Richards Bay" },
-
-    // Limpopo
-    { latitude: -23.9011, longitude: 29.4608, name: "Polokwane" },
-    { latitude: -22.9736, longitude: 30.4988, name: "Thohoyandou" },
-    { latitude: -22.3214, longitude: 30.4698, name: "Musina" },
-    { latitude: -24.1833, longitude: 29.0167, name: "Mokopane" },
-    { latitude: -23.0400, longitude: 30.2300, name: "Tzaneen" },
-
-    // Mpumalanga
-    { latitude: -25.4657, longitude: 30.9298, name: "Nelspruit" },
-    { latitude: -25.3467, longitude: 30.8570, name: "White River" },
-    { latitude: -25.0947, longitude: 30.8570, name: "Hazyview" },
-    { latitude: -25.1196, longitude: 30.1420, name: "Sabie" },
-    { latitude: -25.6282, longitude: 30.4541, name: "Barberton" },
-
-    // North West
-    { latitude: -25.6630, longitude: 25.5170, name: "Rustenburg" },
-    { latitude: -25.6300, longitude: 27.7800, name: "Brits" },
-    { latitude: -26.7152, longitude: 27.0916, name: "Potchefstroom" },
-    { latitude: -26.8667, longitude: 26.6667, name: "Klerksdorp" },
-    { latitude: -25.9300, longitude: 25.6500, name: "Mahikeng" },
-
-    // Northern Cape
-    { latitude: -28.7282, longitude: 24.7499, name: "Kimberley" },
-    { latitude: -28.4478, longitude: 21.2594, name: "Upington" },
-    { latitude: -29.6667, longitude: 17.8833, name: "Springbok" },
-    { latitude: -28.7500, longitude: 24.7700, name: "Northern Cape" },
-    { latitude: -30.7500, longitude: 22.0500, name: "Calvinia" },
-
-    // Western Cape
-    { latitude: -33.9249, longitude: 18.4241, name: "Cape Town" },
-    { latitude: -33.9336, longitude: 18.8653, name: "Stellenbosch" },
-    { latitude: -33.7341, longitude: 18.9700, name: "Paarl" },
-    { latitude: -34.0817, longitude: 22.1409, name: "Mossel Bay" },
-    { latitude: -33.6112, longitude: 19.4572, name: "Worcester" }
-];
-    
+const GOOGLE_API_KEY = 'AIzaSyAsc-PWMl_MI5iSNk9Jt61afWlZLFQ5Dmo';
+const SEARCH_RADIUS = 10000; // 10km radius for initial search
 
 const MapComponent = () => {
     const [medicalFacilities, setMedicalFacilities] = useState([]);
@@ -93,15 +25,119 @@ const MapComponent = () => {
     const [userLocation, setUserLocation] = useState(null);
     const [selectedFacility, setSelectedFacility] = useState(null);
     const [showList, setShowList] = useState(false);
+    const [mapRegion, setMapRegion] = useState(null);
 
-    const initialRegion = {
-        latitude: -30.5595,
-        longitude: 22.9375,
-        latitudeDelta: 10,
-        longitudeDelta: 10,
-    };
+    // Function to fetch facilities based on location
+    const fetchNearbyFacilities = useCallback(async (latitude, longitude) => {
+        try {
+            const processedIds = new Set();
+            const facilities = [];
 
-    const openInGoogleMaps = (facility) => {
+            // Single API call combining both hospitals and health facilities
+            const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${SEARCH_RADIUS}&type=hospital|health&key=${GOOGLE_API_KEY}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.results) {
+                data.results.forEach((place) => {
+                    if (!processedIds.has(place.place_id)) {
+                        processedIds.add(place.place_id);
+                        facilities.push({
+                            id: place.place_id,
+                            name: place.name || 'Unnamed Facility',
+                            latitude: place.geometry.location.lat,
+                            longitude: place.geometry.location.lng,
+                            address: place.vicinity || 'Address not available',
+                            type: place.types.includes('hospital') ? 'hospital' : 'clinic'
+                        });
+                    }
+                });
+            }
+
+            setMedicalFacilities(facilities);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching facilities:', error);
+            setErrorMsg('Error fetching medical facilities');
+            setLoading(false);
+        }
+    }, []);
+
+    // Initialize location and map
+    useEffect(() => {
+        const initializeLocation = async () => {
+            try {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    setErrorMsg('Location permission not granted');
+                    return;
+                }
+
+                // Use low accuracy for faster initial position
+                const location = await Location.getCurrentPositionAsync({
+                    accuracy: Location.Accuracy.Balanced
+                });
+
+                const region = {
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                };
+
+                setUserLocation(location.coords);
+                setMapRegion(region);
+                
+                // Fetch facilities near user location
+                await fetchNearbyFacilities(location.coords.latitude, location.coords.longitude);
+            } catch (error) {
+                console.error('Error getting location:', error);
+                setErrorMsg('Error getting your location');
+                setLoading(false);
+            }
+        };
+
+        initializeLocation();
+    }, [fetchNearbyFacilities]);
+
+    // Memoize markers to prevent unnecessary re-renders
+    const facilityMarkers = useMemo(() => 
+        medicalFacilities.map((facility) => (
+            <Marker
+                key={facility.id}
+                coordinate={{
+                    latitude: facility.latitude,
+                    longitude: facility.longitude
+                }}
+                onPress={() => {
+                    setSelectedFacility(facility);
+                    setShowList(true);
+                }}
+            >
+                <MaterialIcons 
+                    name={facility.type === 'hospital' ? 'local-hospital' : 'medical-services'} 
+                    size={24} 
+                    color={facility.type === 'hospital' ? '#FF4444' : '#4444FF'} 
+                />
+            </Marker>
+        )),
+        [medicalFacilities]
+    );
+
+    // Handle map region change
+    const onRegionChangeComplete = useCallback(async (region) => {
+        // Only fetch new facilities if the user has moved significantly
+        if (
+            userLocation && 
+            (Math.abs(region.latitude - userLocation.latitude) > 0.05 ||
+             Math.abs(region.longitude - userLocation.longitude) > 0.05)
+        ) {
+            await fetchNearbyFacilities(region.latitude, region.longitude);
+        }
+    }, [userLocation, fetchNearbyFacilities]);
+
+    const openInGoogleMaps = useCallback((facility) => {
         if (!userLocation) {
             Alert.alert('Location Required', 'Please enable location services to get directions.');
             return;
@@ -109,133 +145,20 @@ const MapComponent = () => {
 
         const destination = `${facility.latitude},${facility.longitude}`;
         const label = encodeURIComponent(facility.name || 'Medical Facility');
-
-        const scheme = Platform.select({
-            ios: 'comgooglemaps://',
-            android: 'geo:'
-        });
-
+        const scheme = Platform.select({ ios: 'comgooglemaps://', android: 'geo:' });
         const url = Platform.select({
             ios: `${scheme}?q=${label}@${destination}&directionsmode=driving`,
             android: `${scheme}0,0?q=${destination}(${label})`
         });
-
         const webUrl = `https://www.google.com/maps/search/?api=1&query=${destination}`;
 
         Linking.canOpenURL(url)
             .then((supported) => {
-                if (supported) {
-                    return Linking.openURL(url);
-                }
+                if (supported) return Linking.openURL(url);
                 return Linking.openURL(webUrl);
             })
-            .catch(() => {
-                Linking.openURL(webUrl);
-            });
-    };
-
-    useEffect(() => {
-        const fetchFacilities = async () => {
-            try {
-                const allFacilities = [];
-                const processedIds = new Set();
-
-                for (const region of REGIONS) {
-                    const hospitalUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${region.latitude},${region.longitude}&radius=50000&type=hospital&key=${GOOGLE_API_KEY}`;
-                    const clinicUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${region.latitude},${region.longitude}&radius=50000&keyword=clinic&type=health&key=${GOOGLE_API_KEY}`;
-
-                    const [hospitalResponse, clinicResponse] = await Promise.all([
-                        fetch(hospitalUrl),
-                        fetch(clinicUrl)
-                    ]);
-
-                    const [hospitalData, clinicData] = await Promise.all([
-                        hospitalResponse.json(),
-                        clinicResponse.json()
-                    ]);
-
-                    if (hospitalData.results) {
-                        hospitalData.results.forEach((place) => {
-                            if (!processedIds.has(place.place_id)) {
-                                processedIds.add(place.place_id);
-                                allFacilities.push({
-                                    id: place.place_id,
-                                    name: place.name || 'Unnamed Facility',
-                                    latitude: place.geometry.location.lat,
-                                    longitude: place.geometry.location.lng,
-                                    address: place.vicinity || 'Address not available',
-                                    type: 'hospital'
-                                });
-                            }
-                        });
-                    }
-
-                    if (clinicData.results) {
-                        clinicData.results.forEach((place) => {
-                            if (!processedIds.has(place.place_id)) {
-                                processedIds.add(place.place_id);
-                                allFacilities.push({
-                                    id: place.place_id,
-                                    name: place.name || 'Unnamed Facility',
-                                    latitude: place.geometry.location.lat,
-                                    longitude: place.geometry.location.lng,
-                                    address: place.vicinity || 'Address not available',
-                                    type: 'clinic'
-                                });
-                            }
-                        });
-                    }
-                }
-
-                setMedicalFacilities(allFacilities);
-            } catch (error) {
-                console.error('Error fetching facilities:', error);
-                setErrorMsg('Error fetching medical facilities');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const getUserLocation = async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status === 'granted') {
-                let location = await Location.getCurrentPositionAsync({});
-                setUserLocation(location.coords);
-            } else {
-                setErrorMsg('Location permission not granted');
-            }
-        };
-
-        fetchFacilities();
-        getUserLocation();
-    }, []);
-
-    const renderFacilityCard = ({ item }) => (
-        <TouchableOpacity 
-            style={styles.card}
-            onPress={() => {
-                setSelectedFacility(item);
-                setShowList(false);
-            }}
-        >
-            <View style={styles.cardHeader}>
-                <MaterialIcons 
-                    name={item.type === 'hospital' ? 'local-hospital' : 'medical-services'} 
-                    size={24} 
-                    color={item.type === 'hospital' ? '#FF4444' : '#4444FF'} 
-                />
-                <Text style={styles.facilityName}>{item.name}</Text>
-            </View>
-            <Text style={styles.facilityAddress}>{item.address}</Text>
-            <TouchableOpacity
-                style={styles.directionButton}
-                onPress={() => openInGoogleMaps(item)}
-            >
-                <MaterialIcons name="directions" size={20} color="#FFFFFF" />
-                <Text style={styles.directionButtonText}>Get Directions</Text>
-            </TouchableOpacity>
-        </TouchableOpacity>
-    );
+            .catch(() => Linking.openURL(webUrl));
+    }, [userLocation]);
 
     return (
         <SafeAreaView style={styles.safeContainer}>
@@ -244,32 +167,17 @@ const MapComponent = () => {
                     <Text style={styles.headerText}>Medical Facilities</Text>
                     <Text style={styles.subHeaderText}>Hospitals & Clinics Near You</Text>
                 </View>
-                <MapView
-                    style={styles.map}
-                    provider={PROVIDER_GOOGLE}
-                    initialRegion={initialRegion}
-                    showsUserLocation={true}
-                >
-                    {medicalFacilities.map((facility) => (
-                        <Marker
-                            key={facility.id}
-                            coordinate={{
-                                latitude: facility.latitude,
-                                longitude: facility.longitude
-                            }}
-                            onPress={() => {
-                                setSelectedFacility(facility);
-                                setShowList(true);
-                            }}
-                        >
-                            <MaterialIcons 
-                                name={facility.type === 'hospital' ? 'local-hospital' : 'medical-services'} 
-                                size={24} 
-                                color={facility.type === 'hospital' ? '#FF4444' : '#4444FF'} 
-                            />
-                        </Marker>
-                    ))}
-                </MapView>
+                {mapRegion && (
+                    <MapView
+                        style={styles.map}
+                        provider={PROVIDER_GOOGLE}
+                        initialRegion={mapRegion}
+                        showsUserLocation={true}
+                        onRegionChangeComplete={onRegionChangeComplete}
+                    >
+                        {facilityMarkers}
+                    </MapView>
+                )}
 
                 {showList && selectedFacility && (
                     <View style={styles.facilityInfoContainer}>
@@ -279,7 +187,24 @@ const MapComponent = () => {
                         >
                             <MaterialIcons name="close" size={24} color="#333" />
                         </TouchableOpacity>
-                        {renderFacilityCard({ item: selectedFacility })}
+                        <View style={styles.card}>
+                            <View style={styles.cardHeader}>
+                                <MaterialIcons 
+                                    name={selectedFacility.type === 'hospital' ? 'local-hospital' : 'medical-services'} 
+                                    size={24} 
+                                    color={selectedFacility.type === 'hospital' ? '#FF4444' : '#4444FF'} 
+                                />
+                                <Text style={styles.facilityName}>{selectedFacility.name}</Text>
+                            </View>
+                            <Text style={styles.facilityAddress}>{selectedFacility.address}</Text>
+                            <TouchableOpacity
+                                style={styles.directionButton}
+                                onPress={() => openInGoogleMaps(selectedFacility)}
+                            >
+                                <MaterialIcons name="directions" size={20} color="#FFFFFF" />
+                                <Text style={styles.directionButtonText}>Get Directions</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 )}
 
