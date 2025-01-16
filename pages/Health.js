@@ -5,6 +5,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Icon2 from 'react-native-vector-icons/FontAwesome5';
 import Navbar from '../components/Navbar/Navbar';
 import { Platform } from 'react-native';
+import { Linking } from 'react-native';
+
 
 const HealthSection = ({ title, children, color }) => {
   const [expanded, setExpanded] = useState(false);
@@ -54,6 +56,15 @@ const Health = ({ navigation }) => {
           <Text>- Eat a variety of foods</Text>
           <Text>- Limit sugars and saturated fats</Text>
           <Text>- Stay hydrated</Text>
+          <Text style={styles.moreInfo}>
+            For more tips on maintaining a healthy diet, visit the{' '}
+            <Text 
+              style={styles.link}
+              onPress={() => Linking.openURL('https://www.who.int/news-room/fact-sheets/detail/healthy-diet')}
+            >
+              World Health Organization's Healthy Diet page
+            </Text>.
+            </Text>
         </HealthSection>
 
         <HealthSection title="Mental Health" color="#ffd166">
@@ -67,6 +78,16 @@ const Health = ({ navigation }) => {
           <Text>- Practice mindfulness and meditation</Text>
           <Text>- Connect with friends and family</Text>
           <Text>- Seek professional help if necessary</Text>
+          <Text style={styles.bulletPoint}>- Maintain a healthy work-life balance.</Text>
+          <Text style={styles.moreInfo}>
+            For more resources on improving mental health, visit the{' '}
+            <Text 
+              style={styles.link}
+              onPress={() => Linking.openURL('https://www.who.int/news-room/fact-sheets/detail/mental-health-strengthening-our-response')}
+            >
+              World Health Organization's Mental Health page
+            </Text>.
+          </Text>
         </HealthSection>
 
         <HealthSection title="Physical Health" color="#ef476f">
@@ -80,6 +101,17 @@ const Health = ({ navigation }) => {
           <Text>- Aim for at least 150 minutes of moderate exercise weekly</Text>
           <Text>- Incorporate strength training</Text>
           <Text>- Practice good posture</Text>
+          <Text style={styles.bulletPoint}>- Prioritize quality sleep (7-9 hours per night).</Text>
+          <Text style={styles.bulletPoint}>- Schedule regular health check-ups.</Text>
+          <Text style={styles.moreInfo}>
+            For more advice on maintaining physical health, visit the{' '}
+            <Text 
+              style={styles.link}
+              onPress={() => Linking.openURL('https://www.cdc.gov/physicalactivity/basics/index.htm')}
+            >
+              CDC's Physical Activity Guidelines page
+            </Text>.
+          </Text>
         </HealthSection>
 
         <HealthSection title="Sexual Health" color="#118ab2">
@@ -93,6 +125,16 @@ const Health = ({ navigation }) => {
           <Text>- Practice safe sex</Text>
           <Text>- Know your rights and responsibilities</Text>
           <Text>- Regular check-ups are important</Text>
+          <Text style={styles.bulletPoint}>- Educate yourself about sexual health and healthy relationships.</Text>
+          <Text style={styles.moreInfo}>
+            For more information and resources, visit the{' '}
+            <Text 
+              style={styles.link}
+              onPress={() => Linking.openURL('https://www.who.int/health-topics/sexual-health')}
+            >
+              World Health Organization's Sexual Health page
+            </Text>.
+          </Text>
         </HealthSection>
 
         <HealthSection title="Social Health" color="#f58549">
@@ -106,6 +148,16 @@ const Health = ({ navigation }) => {
           <Text>- Build and maintain friendships</Text>
           <Text>- Engage in community activities</Text>
           <Text>- Practice effective communication</Text>
+          <Text style={styles.bulletPoint}>- Set healthy boundaries to maintain mutual respect and well-being.</Text>
+          <Text style={styles.moreInfo}>
+            To explore more about improving social health, visit the{' '}
+            <Text 
+              style={styles.link}
+              onPress={() => Linking.openURL('https://www.mentalhealth.org.uk/explore-mental-health/a-z-topics/relationships-and-mental-health')}
+            >
+              Mental Health Foundation's Relationships and Mental Health page
+            </Text>.
+          </Text>
         </HealthSection>
       </ScrollView>
       <Navbar />
@@ -127,6 +179,15 @@ const styles = StyleSheet.create({
   scrollContainer: {
     padding: 20,
     paddingBottom: 80, // Space for the navbar
+  },
+  moreInfo: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#555',
+  },
+  link: {
+    color: '#f4a261',
+    textDecorationLine: 'underline',
   },
   header: {
     fontSize: 26,
