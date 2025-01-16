@@ -4,9 +4,11 @@ module.exports = function(api) {
     presets: ['babel-preset-expo'],
     plugins: [
       'react-native-reanimated/plugin',
-      "@babel/plugin-transform-nullish-coalescing-operator",
-      "@babel/plugin-transform-class-properties",
-      "@babel/plugin-transform-optional-chaining"
+      ["@babel/plugin-transform-nullish-coalescing-operator", { "loose": true }],
+      ["@babel/plugin-transform-class-properties", { "loose": true }],
+      ["@babel/plugin-transform-optional-chaining", { "loose": true }],
+      ["@babel/plugin-transform-private-methods", { "loose": true }],
+      ["@babel/plugin-transform-private-property-in-object", { "loose": true }],
       ['module:react-native-dotenv', {
         moduleName: '@env',
         path: '.env',

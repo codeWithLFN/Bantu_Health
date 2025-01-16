@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import Navbar from '../components/Navbar/Navbar.js';
 import { Platform } from 'react-native';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../firebaseConfig'; // Adjust the path as needed
+import { auth } from '../firebaseConfig'; // Adjust the path as needed
 
 const { width } = Dimensions.get('window');
 

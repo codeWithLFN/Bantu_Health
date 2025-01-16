@@ -3,7 +3,7 @@
     "name": "Bantu_Health",
     "slug": "bantuhealth",
     "version": "1.0.0",
-    "platforms": ["ios", "android"],
+    "platforms": ["android"],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -15,19 +15,6 @@
         "android": {}
       }]
     ],
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.pixelelites.bantuhealth",
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show nearby medical facilities.",
-        "NSCameraUsageDescription": "Camera access is required for video consultations",
-        "NSMicrophoneUsageDescription": "Microphone access is required for video consultations",
-        "NSPhotoLibraryUsageDescription": "Photo library access is required to upload images."
-      },
-      "config": {
-        "googleMapsApiKey": "AIzaSyAsc-PWMl_MI5iSNk9Jt61afWlZLFQ5Dmo"
-      }
-    },
     "androidNavigationBar": {
       "backgroundColor": "#FFFFFF",
       "barStyle": "dark-content"
