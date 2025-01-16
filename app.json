@@ -3,10 +3,11 @@
     "name": "Bantu_Health",
     "slug": "bantuhealth",
     "version": "1.0.0",
+    "platforms": ["ios", "android"],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "bantuhealth",
+    "scheme": "com.pixelelites.bantuhealth",
     "newArchEnabled": true,
     "plugins": [
       ["expo-build-properties", {
@@ -62,7 +63,8 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "extra": {
       "eas": {
