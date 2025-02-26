@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import Toast from 'react-native-toast-message';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
@@ -11,42 +11,40 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 WebBrowser.maybeCompleteAuthSession();
 
 const Login = ({ navigation }) => {
+  const [isEmailLogin, setIsEmailLogin] = useState(true);
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Initialize Google OAuth authentication request using Expo's Google provider
-  // Returns request object, response object, and promptAsync function for triggering the auth flow
+  // Define Google sign-in request first since it's used by useEffect
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: process.env.GOOGLE_CLIENT_ID, // Google OAuth client ID from environment variables
+    androidClientId: '39135274804-5gtodrsh00h1prfc6qtdlojs3ukeaa2n.apps.googleusercontent.com',
+    webClientId: '39135274804-5gtodrsh00h1prfc6qtdlojs3ukeaa2n.apps.googleusercontent.com',
+    redirectUri: 'exp://192.168.18.93:8081'
   });
 
-  useEffect(() => {
-    // Check if Google OAuth response was successful
-    if (response?.type === 'success') {
-      // Extract authentication object from response
-      const { authentication } = response;
-      // Call handleGoogleSignIn with the ID token to complete Firebase authentication
-      handleGoogleSignIn(authentication.idToken);
-    }
-  }, [response]); // Re-run effect when response changes
+  const showToast = (message) => {
+    Toast.show({
+      text1: message,
+      position: "bottom",
+      type: "success",
+      visibilityTime: 4000,
+      autoHide: true,
+      topOffset: 30,
+    });
+  };
+
   const handleGoogleSignIn = async (idToken) => {
     try {
-      // Show loading indicator
       setLoading(true);
-      
-      // Create Google credential using the ID token
       const credential = GoogleAuthProvider.credential(idToken);
-      
-      // Sign in to Firebase with the Google credential
       const userCredential = await signInWithCredential(auth, credential);
       
-      // Get Firestore instance and reference to user document
       const db = getFirestore();
       const userRef = doc(db, "users", userCredential.user.uid);
       
-      // Save or update user data in Firestore
       await setDoc(userRef, {
         email: userCredential.user.email,
         name: userCredential.user.displayName,
@@ -54,89 +52,114 @@ const Login = ({ navigation }) => {
         healthCredits: 5,
       }, { merge: true });
 
-      // Show success message and navigate to Dashboard
       showToast("Google sign-in successful");
       navigation.navigate("Dashboard");
     } catch (error) {
-      // Log and display error message if sign-in fails
       console.error("Google Sign-In Error:", error);
       showToast("Google sign-in failed");
     } finally {
-      // Hide loading indicator
       setLoading(false);
     }
   };
+
   const handleGoogleSignInPress = async () => {
     try {
-      // Trigger the Google OAuth authentication flow using promptAsync
       await promptAsync();
     } catch (error) {
-      // Log any errors that occur during the sign-in prompt
-      console.error("Google Sign-In Prompt Error:", error);
-      // Display error message to user
-      showToast("Failed to initiate Google sign-in");
+      console.error("Error starting Google Sign-In flow:", error);
+      showToast("Failed to start Google sign-in");
     }
   };
+
   const handleLogin = async () => {
-    // Validate that both email and password fields are filled
-    if (!email || !password) {
-      showToast("Please enter both email and password");
-      return;
+    if (isEmailLogin) {
+      if (!email || !password) {
+        showToast("Please enter both email and password");
+        return;
+      }
+    } else {
+      if (!phoneNumber || !password) {
+        showToast("Please enter both phone number and password");
+        return;
+      }
     }
 
-    // Show loading indicator while attempting login
     setLoading(true);
     try {
-      // Attempt to sign in user with email and password using Firebase Authentication
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // Navigate to Dashboard on successful login
+      let userCredential;
+      if (isEmailLogin) {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        const db = getFirestore();
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("cellphone", "==", phoneNumber));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+          throw new Error("No user found with this phone number");
+        }
+        
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data();
+        userCredential = await signInWithEmailAndPassword(auth, userData.email, password);
+      }
+      showToast("Login successful!");
       navigation.navigate("Dashboard");
     } catch (error) {
-      // Show error message if login fails
-      showToast("Login failed! Please check your credentials.");
+      showToast(error.message || "Login failed! Please check your credentials.");
     } finally {
-      // Hide loading indicator regardless of success or failure
       setLoading(false);
     }
   };
-  // Function to display toast notifications to the user
-  const showToast = (message) => {
-    Toast.show({
-      text1: message,          // Main message text to display
-      position: "bottom",      // Position of the toast on screen
-      type: "success",         // Type/style of the toast
-      visibilityTime: 4000,   // Duration to show toast (in milliseconds)
-      autoHide: true,         // Automatically hide the toast
-      topOffset: 30,          // Offset from the top of the screen
-    });
-  };
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      handleGoogleSignIn(authentication.idToken);
+    }
+  }, [response]);
 
   return (
-    // Main container view
     <View style={styles.container}>
-      {/* Header section with logo and welcome text */}
       <View style={styles.header}>
         <MaterialCommunityIcons name="medical-bag" size={50} color="#007BFF" />
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>Sign in to continue</Text>
       </View>
 
-      {/* Form section containing input fields and buttons */}
       <View style={styles.form}>
-        {/* Email input field */}
+        <View style={styles.loginTypeToggle}>
+          <TouchableOpacity 
+            style={[styles.toggleButton, isEmailLogin && styles.activeToggleButton]} 
+            onPress={() => setIsEmailLogin(true)}
+          >
+            <Text style={[styles.toggleText, isEmailLogin && styles.activeToggleText]}>Email</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.toggleButton, !isEmailLogin && styles.activeToggleButton]}
+            onPress={() => setIsEmailLogin(false)}
+          >
+            <Text style={[styles.toggleText, !isEmailLogin && styles.activeToggleText]}>Phone</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.inputContainer}>
-          <MaterialCommunityIcons name="email" size={20} color="#666" style={styles.inputIcon} />
+          <MaterialCommunityIcons 
+            name={isEmailLogin ? "email" : "phone"} 
+            size={20} 
+            color="#666" 
+            style={styles.inputIcon} 
+          />
           <TextInput
             style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+            placeholder={isEmailLogin ? "Email" : "Phone Number"}
+            value={isEmailLogin ? email : phoneNumber}
+            onChangeText={isEmailLogin ? setEmail : setPhoneNumber}
+            keyboardType={isEmailLogin ? "email-address" : "phone-pad"}
             autoCapitalize="none"
           />
         </View>
 
-        {/* Password input field with show/hide toggle */}
         <View style={styles.passwordContainer}>
           <MaterialCommunityIcons name="lock" size={20} color="#666" style={styles.inputIcon} />
           <TextInput
@@ -146,7 +169,6 @@ const Login = ({ navigation }) => {
             secureTextEntry={!showPassword}
             onChangeText={setPassword}
           />
-          {/* Toggle password visibility button */}
           <TouchableOpacity 
             style={styles.eyeIcon} 
             onPress={() => setShowPassword(!showPassword)}
@@ -159,12 +181,10 @@ const Login = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Forgot password link */}
         <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
           <Text style={styles.forgotPassword}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        {/* Main login button with loading state */}
         <TouchableOpacity 
           style={styles.loginButton} 
           onPress={handleLogin}
@@ -177,14 +197,12 @@ const Login = ({ navigation }) => {
           )}
         </TouchableOpacity>
 
-        {/* Divider with "OR" text */}
         <View style={styles.divider}>
           <View style={styles.line} />
           <Text style={styles.orText}>OR</Text>
           <View style={styles.line} />
         </View>
 
-        {/* Google sign-in button */}
         <TouchableOpacity 
           style={styles.googleButton}
           onPress={handleGoogleSignInPress}
@@ -194,7 +212,6 @@ const Login = ({ navigation }) => {
           <Text style={styles.googleButtonText}>Continue with Google</Text>
         </TouchableOpacity>
 
-        {/* Registration link */}
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text style={styles.registerText}>
             Don't have an account? <Text style={styles.registerLink}>Sign Up</Text>
@@ -202,7 +219,8 @@ const Login = ({ navigation }) => {
         </TouchableOpacity>
       </View>
     </View>
-  );};
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -229,6 +247,31 @@ const styles = StyleSheet.create({
   form: {
     marginTop: 20,
   },
+  loginTypeToggle: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    overflow: 'hidden',
+  },
+  toggleButton: {
+    flex: 1,
+    padding: 12,
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  activeToggleButton: {
+    backgroundColor: '#007BFF',
+  },
+  toggleText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  activeToggleText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -246,11 +289,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
   },
-  forgotPassword: {
-    color: '#007BFF',
-    textAlign: 'right',
-    marginBottom: 20,
-  },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -267,6 +305,11 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     marginLeft: 10,
+  },
+  forgotPassword: {
+    color: '#007BFF',
+    textAlign: 'right',
+    marginBottom: 20,
   },
   loginButton: {
     backgroundColor: '#007BFF',
@@ -316,7 +359,7 @@ const styles = StyleSheet.create({
   registerLink: {
     color: '#007BFF',
     fontWeight: 'bold',
-  }
+  },
 });
 
 export default Login;

@@ -298,13 +298,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginVertical: 6,
     width: '48%',
+    borderWidth: 1,
+    borderColor: '#007AFF',
   },
   selectedSymptom: {
     backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
   },
   symptomText: {
     textAlign: 'center',
-    color: '#1A1A1A',
+    color: '#007AFF',
     fontWeight: '500',
   },
   selectedSymptomText: {
@@ -318,6 +321,8 @@ const styles = StyleSheet.create({
     minHeight: 120,
     fontSize: 16,
     color: '#1A1A1A',
+    borderWidth: 1,
+    borderColor: '#007AFF',
   },
   errorMessage: {
     color: '#DC3545',
@@ -346,6 +351,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#007AFF',
   },
   resultTitle: {
     fontSize: 18,
@@ -372,6 +379,9 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%',
     marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    borderRadius: 12,
   },
   translateButton: {
     backgroundColor: '#28A745',
