@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     StyleSheet,
@@ -9,7 +9,8 @@ import {
     Linking,
     Platform,
     Alert,
-    SafeAreaView
+    SafeAreaView,
+    Image
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -39,6 +40,7 @@ const MapComponent = () => {
             const response = await fetch(url);
             const data = await response.json();
 
+            // Filter out facilities that are already in the list
             if (data.results) {
                 data.results.forEach((place) => {
                     if (!processedIds.has(place.place_id)) {
@@ -55,9 +57,11 @@ const MapComponent = () => {
                 });
             }
 
+            // Sort facilities by name
             setMedicalFacilities(facilities);
             setLoading(false);
         } catch (error) {
+            // Handle errors
             console.error('Error fetching facilities:', error);
             setErrorMsg('Error fetching medical facilities');
             setLoading(false);
@@ -79,6 +83,7 @@ const MapComponent = () => {
                     accuracy: Location.Accuracy.Balanced
                 });
 
+                // Calculate region for map
                 const region = {
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
@@ -86,6 +91,7 @@ const MapComponent = () => {
                     longitudeDelta: 0.0421,
                 };
 
+                /// Set user location and map region
                 setUserLocation(location.coords);
                 setMapRegion(region);
                 
@@ -101,30 +107,6 @@ const MapComponent = () => {
         initializeLocation();
     }, [fetchNearbyFacilities]);
 
-    // Memoize markers to prevent unnecessary re-renders
-    const facilityMarkers = useMemo(() => 
-        medicalFacilities.map((facility) => (
-            <Marker
-                key={facility.id}
-                coordinate={{
-                    latitude: facility.latitude,
-                    longitude: facility.longitude
-                }}
-                onPress={() => {
-                    setSelectedFacility(facility);
-                    setShowList(true);
-                }}
-            >
-                <MaterialIcons 
-                    name={facility.type === 'hospital' ? 'local-hospital' : 'medical-services'} 
-                    size={24} 
-                    color={facility.type === 'hospital' ? '#FF4444' : '#4444FF'} 
-                />
-            </Marker>
-        )),
-        [medicalFacilities]
-    );
-
     // Handle map region change
     const onRegionChangeComplete = useCallback(async (region) => {
         // Only fetch new facilities if the user has moved significantly
@@ -137,12 +119,14 @@ const MapComponent = () => {
         }
     }, [userLocation, fetchNearbyFacilities]);
 
+    // Function to open Google Maps with directions to a facility
     const openInGoogleMaps = useCallback((facility) => {
         if (!userLocation) {
             Alert.alert('Location Required', 'Please enable location services to get directions.');
             return;
         }
 
+        // Construct the URL for Google Maps
         const destination = `${facility.latitude},${facility.longitude}`;
         const label = encodeURIComponent(facility.name || 'Medical Facility');
         const scheme = Platform.select({ ios: 'comgooglemaps://', android: 'geo:' });
@@ -152,6 +136,7 @@ const MapComponent = () => {
         });
         const webUrl = `https://www.google.com/maps/search/?api=1&query=${destination}`;
 
+        // Open the URL in the appropriate app or browser
         Linking.canOpenURL(url)
             .then((supported) => {
                 if (supported) return Linking.openURL(url);
@@ -167,6 +152,7 @@ const MapComponent = () => {
                     <Text style={styles.headerText}>Medical Facilities</Text>
                     <Text style={styles.subHeaderText}>Hospitals & Clinics Near You</Text>
                 </View>
+                
                 {mapRegion && (
                     <MapView
                         style={styles.map}
@@ -175,7 +161,22 @@ const MapComponent = () => {
                         showsUserLocation={true}
                         onRegionChangeComplete={onRegionChangeComplete}
                     >
-                        {facilityMarkers}
+                        {medicalFacilities.map((facility) => (
+                            <Marker
+                                key={facility.id}
+                                coordinate={{
+                                    latitude: facility.latitude,
+                                    longitude: facility.longitude
+                                }}
+                                title={facility.name}
+                                description={facility.address}
+                                pinColor={facility.type === 'hospital' ? '#FF4444' : '#4444FF'}
+                                onPress={() => {
+                                    setSelectedFacility(facility);
+                                    setShowList(true);
+                                }}
+                            />
+                        ))}
                     </MapView>
                 )}
 
@@ -230,14 +231,13 @@ const styles = StyleSheet.create({
     safeContainer: {
         flex: 1,
         backgroundColor: '#F3F4F6',
-        
     },
     container: {
         flex: 1,
     },
     map: {
         width: Dimensions.get('window').width,
-        height: Dimensions.get('window').height,
+        height: Dimensions.get('window').height * 0.85,
     },
     headerContainer: {
         backgroundColor: '#007BFF',

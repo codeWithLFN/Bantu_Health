@@ -8,8 +8,10 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+// Initialize Google sign-in
 WebBrowser.maybeCompleteAuthSession();
 
+// Define the Login component
 const Login = ({ navigation }) => {
   const [isEmailLogin, setIsEmailLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -25,6 +27,7 @@ const Login = ({ navigation }) => {
     redirectUri: 'exp://192.168.18.93:8081'
   });
 
+  // Function to show a toast message
   const showToast = (message) => {
     Toast.show({
       text1: message,
@@ -36,6 +39,7 @@ const Login = ({ navigation }) => {
     });
   };
 
+  // Function to handle Google sign-in
   const handleGoogleSignIn = async (idToken) => {
     try {
       setLoading(true);
@@ -62,6 +66,7 @@ const Login = ({ navigation }) => {
     }
   };
 
+  // Handle Google Sign-In request
   const handleGoogleSignInPress = async () => {
     try {
       await promptAsync();
@@ -71,34 +76,42 @@ const Login = ({ navigation }) => {
     }
   };
 
+  // Handle Google Sign-In response
   const handleLogin = async () => {
+    // Check if the user exists with the given email
     if (isEmailLogin) {
       if (!email || !password) {
         showToast("Please enter both email and password");
         return;
       }
     } else {
+      // Phone number login
       if (!phoneNumber || !password) {
         showToast("Please enter both phone number and password");
         return;
       }
     }
 
+    // Login with email and password
     setLoading(true);
     try {
+      // Sign in with email and password
       let userCredential;
       if (isEmailLogin) {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
       } else {
+        // Check if the user exists with the given phone number
         const db = getFirestore();
         const usersRef = collection(db, "users");
         const q = query(usersRef, where("cellphone", "==", phoneNumber));
         const querySnapshot = await getDocs(q);
         
+        // If no user found with the phone number, throw an error
         if (querySnapshot.empty) {
           throw new Error("No user found with this phone number");
         }
         
+        // If user found, sign in with email and password
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
         userCredential = await signInWithEmailAndPassword(auth, userData.email, password);
@@ -119,6 +132,7 @@ const Login = ({ navigation }) => {
     }
   }, [response]);
 
+  // Render the login form
   return (
     <View style={styles.container}>
       <View style={styles.header}>
