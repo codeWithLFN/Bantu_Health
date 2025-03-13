@@ -127,8 +127,6 @@ We welcome contributions to Bantu Health! Please follow these steps:
 
 For support, please:
 - 📧 Email: support@bantuhealth.com
-- 💬 Discord: [Join our community](https://discord.gg/bantuhealth)
-- 📱 x : [@BantuHealth](https://twitter.com/bantuhealth)
 
 ## 📝 License
 
